@@ -1,0 +1,22 @@
+{
+  "name": "ioc-js",
+  "version": "0.0.1",
+  "description": "Simple IoC-Container for js",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha tests/"
+  },
+  "author": {
+    "name": "Maxim Sadofyev",
+    "email": "cflajmtd@gmail.com"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "gulp": "^3.9.1",
+    "gulp-browserify": "^0.5.1",
+    "gulp-load-plugins": "^1.4.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^2.0.0",
+    "mocha": "^3.1.2"
+  }
+}
