@@ -4,11 +4,17 @@
   "description": "Simple IoC-Container for js",
   "main": "index.js",
   "scripts": {
-    "test": "mocha tests/"
+    "test": "mocha tests/",
+    "build": "gulp"
   },
   "author": {
     "name": "Maxim Sadofyev",
     "email": "cflajmtd@gmail.com"
+  },
+  "homepage": "https://github.com/sunriselink/ioc-js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sunriselink/ioc-js.git"
   },
   "devDependencies": {
     "chai": "^3.5.0",
