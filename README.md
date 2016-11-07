@@ -1,5 +1,20 @@
 # IoC-js
 
+## Methods
+
+```
+/* Register module */
+register(name, [dependencies,] constructor);
+
+/* Initialize all registered modules */
+init();
+
+/* Get initialized module by name */
+resolve(name);
+```
+
+## Example
+
 ```
 var ContainerModule = require('ioc-js');
 var builder = new ContainerModule();
@@ -20,13 +35,5 @@ builder.init();
 
 var secondModule = builder.resolve('SecondModule');
 
-console.log(secondModule.test()); // This is first module 
+console.log(secondModule.test()); // This is first module
 ```
-
-## Methods
-
-```register(name, [dependencies,] constructor);```
-
-```init();```
-
-```resolve(name);```

@@ -1,6 +1,6 @@
 {
   "name": "ioc-js",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Simple IoC-Container for js",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
   },
   "author": {
     "name": "Maxim Sadofyev",
-    "email": "cflajmtd@gmail.com"
+    "email": "cfljamtd@gmail.com"
   },
   "homepage": "https://github.com/sunriselink/ioc-js",
   "repository": {
