@@ -4,71 +4,6 @@ const strings = require('../lib/strings');
 const utils = require('../lib/utils');
 const ContainerModule = require('../lib/ioc');
 
-describe('Utils tests', () => {
-    let string = 'String';
-    let number = 1;
-    let func = () => 0;
-    let array = [];
-    let undef = undefined;
-
-    it('isString()', () => {
-        assert.isTrue(utils.isString(string));
-        assert.isFalse(utils.isString(number));
-        assert.isFalse(utils.isString(func));
-        assert.isFalse(utils.isString(array));
-        assert.isFalse(utils.isString(undef));
-    });
-
-    it('isFunction()', () => {
-        assert.isTrue(utils.isFunction(func));
-        assert.isFalse(utils.isFunction(string));
-        assert.isFalse(utils.isFunction(number));
-        assert.isFalse(utils.isFunction(array));
-        assert.isFalse(utils.isFunction(undef));
-    });
-
-    it('isArray()', () => {
-        assert.isTrue(utils.isArray(array));
-        assert.isFalse(utils.isArray(string));
-        assert.isFalse(utils.isArray(number));
-        assert.isFalse(utils.isArray(func));
-        assert.isFalse(utils.isArray(undef));
-    });
-
-    it('isDefined', () => {
-        assert.isTrue(utils.isDefined(array));
-        assert.isTrue(utils.isDefined(string));
-        assert.isTrue(utils.isDefined(number));
-        assert.isTrue(utils.isDefined(func));
-        assert.isFalse(utils.isDefined(undef));
-    });
-
-    it('format()', () => {
-        assert.equal(utils.format('Text {0}', []), 'Text undefined');
-        assert.equal(utils.format('Text {0}', ['text']), 'Text text');
-        assert.equal(utils.format('Text {0} {1} smth {0}', ['text', 'foo']), 'Text text foo smth text');
-    });
-
-    it('extend()', () => {
-        let obj1 = {
-            testProp1: 1
-        };
-        let obj2 = {
-            testProp2: {
-                subProp: 'string'
-            }
-        };
-        let obj3 = {
-            testProp1: true
-        };
-        
-        let result = utils.extend(obj1, obj2, obj3);
-        
-        assert.deepEqual(result, obj1);
-        assert.typeOf(obj1.testProp1, 'boolean');
-    });
-});
-
 describe('Without dependencies', () => {
     it('should be returned "Hello, World"', () => {
         let builder = new ContainerModule();
@@ -149,6 +84,24 @@ describe('With dependencies', () => {
 
         assert.equal(app.run(), 'This is test 800x600 sunriselink');
     });
+
+    it('should work with dependencies in function property', function () {
+        let builder = new ContainerModule();
+
+        let FirstModule = () => 'One';
+        let SecondModule = () => 'Two';
+        let ThirdModule = (one, two) => one + ' ' + two + ' Three!';
+        
+        ThirdModule.dependencies = ['SecondModule'];
+        
+        builder
+            .register('FirstModule', FirstModule)
+            .register('SecondModule', SecondModule)
+            .register('ThirdModule', ['FirstModule'], ThirdModule)
+            .init();
+        
+        assert.equal(builder.resolve('ThirdModule'), 'One Two Three!');
+    });
 });
 
 describe('Errors', () => {
@@ -168,14 +121,14 @@ describe('Errors', () => {
         chai.expect(() => new ContainerModule()
             .register('Name', () => 0)
             .register('Name', () => 0))
-            .to.throw(strings.ERROR_MODULE_ALREADY_DEFINED);
+            .to.throw(utils.format(strings.ERROR_MODULE_ALREADY_DEFINED, ['Name']));
         chai.expect(() => new ContainerModule()
             .resolve('Name'))
             .to.throw(utils.format(strings.ERROR_MODULE_NOT_FOUND, ['Name']));
         chai.expect(() => new ContainerModule()
             .register('Name', () => 0)
             .resolve('Name'))
-            .to.throw(strings.ERROR_MODULE_NOT_INITIALIZED);
+            .to.throw(utils.format(strings.ERROR_MODULE_NOT_INITIALIZED, ['Name']));
 
         // Init
         chai.expect(() => new ContainerModule()
@@ -190,6 +143,6 @@ describe('Errors', () => {
         chai.expect(() => new ContainerModule()
             .register('Name', () => undefined)
             .init())
-            .to.throw(strings.ERROR_MODULE_INITIALIZE);
+            .to.throw(utils.format(strings.ERROR_MODULE_INITIALIZE, ['Name']));
     });
 });

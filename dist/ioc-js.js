@@ -16,7 +16,7 @@ ContainerModule.prototype.register = function (name, deps, ctor) {
     }
 
     if (utils.isDefined(this._modules[name])) {
-        throw new Error(strings.ERROR_MODULE_ALREADY_DEFINED);
+        throw new Error(utils.format(strings.ERROR_MODULE_ALREADY_DEFINED, [name]));
     }
 
     if (utils.isFunction(deps)) {
@@ -26,6 +26,10 @@ ContainerModule.prototype.register = function (name, deps, ctor) {
 
     if (!utils.isArray(deps) || !utils.isFunction(ctor)) {
         throw new Error(strings.ERROR_PARAMETERS_INCORRECT);
+    }
+
+    if (utils.isArray(ctor.dependencies)) {
+        deps = utils.union(deps, ctor.dependencies);
     }
 
     this._modules[name] = new Module(name, deps, ctor);
@@ -62,18 +66,20 @@ function buildModule(module, stack, modules) {
 
     var deps = [];
 
-    module._deps.forEach(function (dependency) {
-        if (!utils.isDefined(modules[dependency])) {
-            throw new Error(utils.format(strings.ERROR_MODULE_NOT_FOUND, [dependency]));
+    module._deps.forEach(function (dependencyName) {
+        var dependency = modules[dependencyName];
+
+        if (!utils.isDefined(dependency)) {
+            throw new Error(utils.format(strings.ERROR_MODULE_NOT_FOUND, [dependencyName]));
         }
 
-        if (!modules[dependency].isReady()) {
+        if (!dependency.isReady()) {
             stack.push(module._name);
-            buildModule(modules[dependency], stack, modules);
+            buildModule(dependency, stack, modules);
             stack.pop();
         }
 
-        deps.push(modules[dependency].getInstance());
+        deps.push(dependency.getInstance());
     });
 
     module.build(deps);
@@ -97,19 +103,19 @@ Module.prototype.isReady = function () {
 
 Module.prototype.build = function (deps) {
     if (this.isReady()) {
-        throw new Error(strings.ERROR_MODULE_ALREADY_INITIALIZED);
+        throw new Error(utils.format(strings.ERROR_MODULE_ALREADY_INITIALIZED, [this._name]));
     }
 
     this._instance = this._ctor.apply(null, deps);
 
     if (!this.isReady()) {
-        throw new Error(strings.ERROR_MODULE_INITIALIZE);
+        throw new Error(utils.format(strings.ERROR_MODULE_INITIALIZE, [this._name]));
     }
 };
 
 Module.prototype.getInstance = function () {
     if (!this.isReady()) {
-        throw new Error(strings.ERROR_MODULE_NOT_INITIALIZED);
+        throw new Error(utils.format(strings.ERROR_MODULE_NOT_INITIALIZED, [this._name]));
     }
 
     return this._instance;
@@ -119,14 +125,14 @@ module.exports = Module;
 
 },{"./strings":4,"./utils":5}],4:[function(_dereq_,module,exports){
 module.exports = {
-    ERROR_CIRCULAR_DEPENDENCY: 'Циклическая зависимость сервиса {0}',
-    ERROR_MODULE_ALREADY_DEFINED: 'Сервис уже определен',
-    ERROR_MODULE_ALREADY_INITIALIZED: 'Сервис уже проинициализирован',
-    ERROR_MODULE_INITIALIZE: 'Ошибка при инициализации сервиса',
-    ERROR_MODULE_NAME_INCORRECT: 'Некорректное имя сервиса',
-    ERROR_MODULE_NOT_INITIALIZED: 'Сервис не проинициализирован',
-    ERROR_MODULE_NOT_FOUND: 'Сервис {0} не найден',
-    ERROR_PARAMETERS_INCORRECT: 'Некорректные параметры'
+    ERROR_CIRCULAR_DEPENDENCY: '{0}: Circular dependency',
+    ERROR_MODULE_ALREADY_DEFINED: '{0}: Module is already defined',
+    ERROR_MODULE_ALREADY_INITIALIZED: '{0}: Module is already initialized',
+    ERROR_MODULE_INITIALIZE: '{0}: Module return empty result',
+    ERROR_MODULE_NAME_INCORRECT: 'Incorrect module name',
+    ERROR_MODULE_NOT_INITIALIZED: '{0}: Module is not initialized',
+    ERROR_MODULE_NOT_FOUND: '{0}: Module not found',
+    ERROR_PARAMETERS_INCORRECT: 'Incorrect parameters'
 };
 },{}],5:[function(_dereq_,module,exports){
 function isString(value) {
@@ -155,15 +161,11 @@ function extend() {
     var objects = Array.prototype.slice.call(arguments);
     var root = objects[0];
 
-    if (objects.length < 2) {
-        return root;
-    }
-
     for (var i = 1; i < objects.length; i++) {
         var sub = objects[i];
-        
+
         for (var key in sub) {
-            if (sub.hasOwnProperty(key) && !!sub[key]) {
+            if (sub.hasOwnProperty(key) && isDefined(sub[key])) {
                 root[key] = sub[key];
             }
         }
@@ -172,12 +174,32 @@ function extend() {
     return root;
 }
 
+function union() {
+    var arrays = Array.prototype.slice.call(arguments);
+    var result = [];
+
+    for (var i = 0; i < arrays.length; i++) {
+        var array = arrays[i];
+
+        if (!isArray(array)) {
+            throw new Error(format('Argument {0} is not array', [(i + 1)]));
+        }
+
+        for (var j = 0; j < array.length; j++) {
+            result.push(array[j]);
+        }
+    }
+
+    return result;
+}
+
 exports.isString = isString;
 exports.isFunction = isFunction;
 exports.isArray = isArray;
 exports.isDefined = isDefined;
 exports.format = format;
 exports.extend = extend;
+exports.union = union;
 
 },{}]},{},[1])
 (1)
